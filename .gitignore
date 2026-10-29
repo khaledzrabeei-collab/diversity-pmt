@@ -1,0 +1,14 @@
+node_modules/
+.next/
+next-env.d.ts
+out/
+.env*
+!.env.example
+coverage/
+playwright-report/
+test-results/
+supabase/.temp/
+supabase/.branches/
+references/private/
+*.tsbuildinfo
+.vercel/
