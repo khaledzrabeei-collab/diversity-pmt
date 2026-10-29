@@ -2,6 +2,8 @@
 
 Provisional least-privilege design. User confirmed RBAC, not these exact role names. Memberships are database records, never user-editable auth metadata.
 
+**Source review update:** the matrix below describes only the new foundation. It does not reproduce legacy permissions. Saved version 20 has manager/staff/viewer plus independent MEAL manager/officer/assistant/focal/viewer roles, owner-name/project editing assignments and sector/indicator scopes. Existing authenticated read visibility includes all workspace projects. See D-02/D-03 in [existing-site-review.md](existing-site-review.md). Preserve both models as explicit alternatives until the access owner accepts the migration mapping; do not auto-map legacy managers into new organization administrators.
+
 | Capability | Anonymous | Org member, unassigned | Assigned project role | Org auditor | Org admin | Trusted operator |
 |---|---|---|---|---|---|---|
 | Sign in | Yes | Yes | Yes | Yes | Yes | Account dependent |

@@ -45,6 +45,7 @@ references/private/        Ignored location for locally supplied originals
 ## Review documents
 
 - [Evidence and current behavior](docs/discovery.md)
+- [Existing site source review and discrepancies](docs/existing-site-review.md)
 - [Requirements traceability matrix](docs/requirements.md)
 - [Database schema](docs/database.md)
 - [Access-control matrix](docs/access-control.md)

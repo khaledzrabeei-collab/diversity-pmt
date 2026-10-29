@@ -8,7 +8,7 @@ Status meanings: C = confirmed by user E-01; A = design assumption requiring acc
 | R-02 | Multiple projects with scoped access | C | organizations/projects/memberships and RLS | F-04 cross-tenant/project negative cases | 1 / implemented |
 | R-03 | Role-based access | C; exact roles A | grants, RLS, access-control.md | F-05 escalation and writes denied | 1 / implemented; roles provisional |
 | R-04 | Modular architecture | C | src/modules and architecture.md | Review dependency boundaries | 1 / implemented |
-| R-05 | Inspect references and existing app first | C | discovery.md | E-02/E-03; file/cell/source trace on receipt | Discovery blocked by missing evidence |
+| R-05 | Inspect references and existing app first | C | discovery.md, existing-site-review.md | E-05/E-06 source version 20 inspected; E-07 has 146 passing isolated checks | Source inspection complete for saved v20; workbooks/live UI pending |
 | R-06 | Preserve agreed behavior and formulas | C; semantics U | discrepancy register and golden fixtures | Domain-owner signed reconciliation | Every module / pending |
 | R-07 | Never overwrite source data | C | No importer in foundation; proposed immutable source/revision storage | Original hashes unchanged, import idempotency/reversal | 2 onward / deferred |
 | R-08 | DIP/WBS | C; rules U | proposed activities, dependencies and plan versions | M-DIP approved hierarchy/date/progress cases | 3 / deferred |
@@ -27,3 +27,5 @@ Status meanings: C = confirmed by user E-01; A = design assumption requiring acc
 | R-21 | Secure failure before configuration | A | setup route; no mock tenant/session | F-02 | 1 / implemented |
 
 Acceptance owners proposed: platform/security owner for F tests; Programme for DIP; MEAL for PITT/monitoring; Finance for BVA; Procurement for procurement; leadership plus domain owners for portfolio. Actual names and sign-off authority remain to be supplied.
+
+Source-inspection addendum: R-02/R-03 require explicit decisions D-02/D-03 on read visibility and scoped MEAL roles. R-06 now has a source regression baseline (146 checks), but no workbook parity acceptance. R-08 through R-11 must preserve the behavior catalogue in existing-site-review.md; existing implementation is evidence, not automatic approval of its formulas. R-14/R-16 require the D-01 platform migration decision and a verified staging path. Original workbooks remain missing.

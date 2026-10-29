@@ -2,6 +2,8 @@
 
 Only stage 1 is authorized for implementation in this delivery. Later stages are a proposal, not begun work.
 
+Discovery update: the existing site's v20 source is available and inspected, with 146 passing isolated regression checks. Workbooks remain missing. Before completing stage 1 acceptance, resolve D-01/D-02/D-03 migration and access choices; before business migration, preserve the legacy behavior catalogue and original source data. No source ZIP is currently needed for v20.
+
 | Stage | Scope | Entry / exit gate |
 |---|---|---|
 | 0 — Evidence baseline | Inventory originals and source, inspect formulas/behavior, establish discrepancies and authoritative versions | Evidence supplied; domain owners approve baseline |
@@ -17,4 +19,4 @@ Only stage 1 is authorized for implementation in this delivery. Later stages are
 
 Dependencies may change after reference inspection. No delivery dates are invented before discovery and staffing estimates. Scope changes require a traceability update and renewed affected acceptance tests. Backward compatibility must be demonstrated with previously approved fixtures.
 
-Immediate inputs needed: authoritative workbooks; existing site URL and source archive/repository; named acceptance owners. Deployment inputs can follow: Git hosting destination, staging/production Supabase and Vercel projects (or approved alternative), hosting region and operational policy. Secrets belong in provider secret stores, not chat or Git.
+Immediate inputs needed: authoritative workbooks and named acceptance owners. The existing site URL and saved-version source have now been obtained. Deployment inputs can follow: Git hosting destination, staging/production Supabase and Vercel projects (or approved alternative), hosting region and operational policy. Secrets belong in provider secret stores, not chat or Git.

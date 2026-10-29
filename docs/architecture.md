@@ -2,6 +2,8 @@
 
 Next.js App Router is the presentation/server boundary. TypeScript strict mode and Zod validate project input. Server Components query through a per-request Supabase SSR client; Server Actions revalidate identity for each mutation. Supabase Auth owns credentials and sessions. PostgreSQL grants/RLS enforce access even when clients call the data API directly.
 
+The existing reference is a separate Sites/Vinext/Cloudflare Worker application backed by D1 JSON storage and dispatch identity. It is not connected to this Supabase foundation. [Existing-site-review.md](existing-site-review.md) records the migration boundaries, role differences and regression baseline. Avoid copying dispatch-header trust into a standalone Next.js deployment; Supabase identity must be independently verified there.
+
 ```mermaid
 flowchart LR
   B[Browser] --> N[Next.js routes and Server Actions]

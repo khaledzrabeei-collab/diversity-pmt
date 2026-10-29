@@ -2,6 +2,8 @@
 
 Every release is a candidate until required automated tests pass and the named owner signs off. A skipped test is not evidence of passing. Stage 1 has not been accepted. See verification.md for actual executions.
 
+Reference baseline E-07: six existing v20 domain/API suites passed 146 synthetic tests using SWC transpilation and Node's test runner (`node scripts/check-reference.cjs`, source checkout required). These establish existing code assertions for future differential tests. They do not count as new-module completion, workbook reconciliation, legacy typechecking or live integration. Preserve D-02/D-03 role-policy differences and D-06 procurement fallback as explicit acceptance cases.
+
 | Test ID | Acceptance criterion | Automation / verification |
 |---|---|---|
 | F-01 | Clean install, strict typecheck, tests and production build; liveness has no data | npm ci, typecheck, test, build; foundation.spec.ts |

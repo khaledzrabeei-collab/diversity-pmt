@@ -15,7 +15,9 @@ Local execution on 2026-10-29 (Windows, Node 24.16.0):
 | PostgreSQL/pgTAP authorization suite | 18 assertions authored, not executed. Docker absent; local Supabase CLI optional Windows binary also failed to install |
 | Git whitespace check | Passed for staged implementation |
 | CI and deployment workflows | Authored, not run on a Git host; no remote or environment credentials supplied |
-| Reference workbook/application parity | Not verified: references and existing source not supplied |
+| Existing reference source | Saved v20 source retrieved at 7475cbb2a6f1268cbfcc42893306a7db5352f9e8; inspected; source checkout unchanged |
+| Existing domain/API regressions | 146 passed, 0 failed, 0 skipped through SWC transpilation; not a legacy typecheck/build or live D1 test |
+| Reference workbook parity / live UI | Not verified: workbooks absent; ordinary web reader cannot access custom-access site |
 
 Sandbox blocked Vite, Next.js TypeScript and Playwright subprocesses with EPERM; the affected checks passed after approved execution outside the sandbox. Dependency download required network approval and retries. The failed optional Supabase CLI package is an additional local tooling limitation; Docker is still required before integration testing even after reinstalling that binary.
 

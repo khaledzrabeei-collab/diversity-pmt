@@ -15,6 +15,8 @@ UUIDs avoid meaningful sequential project identifiers. Timestamps use timestampt
 
 ## Deferred conceptual model — not migrations
 
+Source review adds mandatory migration requirements: the legacy D1 `workspaces` table contains one versioned JSON document (row `program`). Preserve a read-only original snapshot and its source version/hash before normalization. Add a source-ID mapping rather than coercing legacy task/indicator IDs into UUIDs. Preserve unknown source fields, Jira identities, baseline/current dates, currency, monthly explicit-zero flags, approval snapshots, recovery history and provenance. Proposed scoped assignment entities must support project + owner, MEAL sector and focal-indicator permissions, subject to D-02/D-03 acceptance. New normalized updates must retain stale-write rejection and atomic multi-entity changes. No migration of live records has been performed.
+
 Every project-owned table will include organization_id and project_id with a composite project FK, RLS and audited versioning. Each business row will have provenance to an import/manual revision; exact columns wait for source inspection.
 
 | Domain | Proposed entities | Decisions required before DDL |

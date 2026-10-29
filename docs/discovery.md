@@ -8,20 +8,25 @@ Date: 2026-10-29. Scope: supplied workspace and conversation. No claim is made a
 | E-02 | Configured workspace inspection | Folder was absent; created after Windows permission approval. No existing application, Git history or workbooks existed in that folder |
 | E-03 | Conversation attachments | No workbook, application URL, repository or archive supplied at initial inspection |
 | E-04 | Runtime inspection | Node 24.16.0, npm 11.13.0 and Git available; Docker and psql were not on PATH |
+| E-05 | User-supplied existing site URL and authenticated Sites metadata | Program Management Site; active; custom access; latest saved version 20; source commit 7475cbb2a6f1268cbfcc42893306a7db5352f9e8 |
+| E-06 | Retrieved source at the E-05 commit | Inspected architecture, permissions, modules, formula functions and source tests; checkout unchanged |
+| E-07 | Six isolated reference domain/API suites | 146 passed, 0 failed, 0 skipped using SWC-transpiled source; no legacy typecheck/live integration claim |
 
 ## Current behavior and discrepancies
 
-Existing application behavior is **unverified**, not absent. The existing site link has been requested along with workbook files and source access. The site can establish visible behavior; it cannot alone establish hidden formulas, server permissions, historical changes or data integrity.
+Existing site supplied: [Program Management Site](https://programe-management-workspace.fmfyemen-tea-0291.chatgpt.site). Source inspection and isolated regression checks succeeded; see [the existing-site review](existing-site-review.md). Authenticated production UI behavior and original workbook parity remain unverified. The ordinary web reader cannot access the custom-access site.
+
+The latest saved version's archive provenance is SHA-256 `2f8704d9c4e33119b9b242091b71fcbc3c124e50dcd227274ef0481b1f438a4b`, 78 files, 3,031,040 bytes. Saved-version metadata alone does not establish which version is currently deployed. Source was retrieved into ignored `references/private/site-source` at the recorded commit; no live mutation or deployment was performed.
 
 | Area | Confirmed current behavior | Discrepancy / risk | Required evidence |
 |---|---|---|---|
-| DIP/WBS | Unknown | Dates, hierarchy, progress rollups and dependencies may differ across workbooks | Authoritative workbook and source implementation |
-| PITT | Unknown | Aggregation, disaggregation, denominators and reporting period rules not established | Indicator dictionary, formulas and approved examples |
-| BVA | Unknown | Currency, exchange rates, sign conventions, commitments, periods and rounding not established | Approved budget/actuals workbook and reconciled report |
-| Procurement | Unknown | Status lifecycle, lead time and links to budget/activity not established | Procurement workbook, SOP and application behavior |
-| Monitoring | Unknown | Findings, evidence, verification and closure workflow not established | Monitoring templates and approved workflow |
-| Portfolio | Unknown | Cross-project aggregation and comparability not established | Approved portfolio reports and inclusion rules |
-| Authentication | Unknown | Existing identities and permissions cannot yet be mapped | Existing role list and account lifecycle policy |
+| DIP/WBS | Five-level hierarchy, rollups, baseline/revisions, recurring months and recovery in source/tests | Workbook parity unverified | Authoritative workbook |
+| PITT | Linked indicators, monthly reporting, breakdowns, scoped MEAL roles and approval snapshots | Source targets/units and proposal coverage unresolved | Indicator dictionary, originals and approved examples |
+| BVA | Actual/forecast/accrual/pending-PO arithmetic in source/tests | Currency precision and Finance-approved reconciliation unverified | Approved budget/actuals workbook and reconciled report |
+| Procurement | Lead-time/date calculations and linked-task risk in source/tests | Order-date fallback differs from README's PR-only description | Procurement workbook and SOP |
+| Monitoring | Indicator/MoV features; no dedicated visit/finding module found | Requested broader monitoring scope not established | Monitoring templates and approved workflow |
+| Portfolio | Project selection; no dedicated cross-project dashboard found | Cross-project aggregation and comparability not established | Approved portfolio reports and inclusion rules |
+| Authentication | Sites dispatch identity and application roles in source | Read scopes and independent MEAL roles differ from new provisional model | Accepted access mapping and lifecycle policy |
 
 No workbook-to-app discrepancy can responsibly be declared resolved yet.
 
