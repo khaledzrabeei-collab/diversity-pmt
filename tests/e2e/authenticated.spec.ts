@@ -33,6 +33,12 @@ test.describe("F-03/F-07 authenticated local acceptance", () => {
     if (project.error) throw project.error;
     const assignment = await admin.from("project_memberships").insert({ organization_id: organizationId, project_id: projectId, user_id: v.data.user!.id, role: "viewer" });
     if (assignment.error) throw assignment.error;
+    const authProbe = createClient(url!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    });
+    const probe = await authProbe.auth.signInWithPassword({ email, password });
+    if (probe.error) throw new Error(`Fixture sign-in failed: status=${probe.error.status}, code=${probe.error.code}`);
+    await authProbe.auth.signOut({ scope: "local" });
   });
 
   test("admin signs in, creates project, signs out and loses page access", async ({ page }) => {
@@ -66,7 +72,7 @@ test.describe("F-03/F-07 authenticated local acceptance", () => {
     await page.getByLabel("Email address").fill(email);
     await page.getByLabel("Password", { exact: true }).fill("invalid-password");
     await page.getByRole("button", { name: "Sign in to workspace" }).click();
-    await expect(page.getByRole("alert")).toContainText("Unable to sign in");
+    await expect(page.getByRole("alert").filter({ hasText: "Unable to sign in" })).toBeVisible();
   });
   // Fixtures remain in disposable local DB for failure inspection; db reset removes them.
 });
