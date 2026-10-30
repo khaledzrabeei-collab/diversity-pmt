@@ -2,6 +2,8 @@
 
 Stage 1 status: implementation candidate; **not accepted and not deployed**.
 
+2026-10-31 follow-up: hardened the authentication CI configuration to fail instead of silently skipping when required credentials/local target are missing; disabled traces for authenticated runs. Strict TypeScript passed and 18 unit tests passed (8 project validation, 10 test-environment guard). Vite required approved execution outside the sandbox because subprocess creation was blocked. Database/authentication integration was not run. User confirmed no GitHub repository exists; Docker is unavailable and no remote is configured. Earlier build/browser results below precede this test-configuration change.
+
 Local execution on 2026-10-29 (Windows, Node 24.16.0):
 
 | Check | Result |

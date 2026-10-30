@@ -31,6 +31,8 @@ Use distinct Supabase and Vercel projects for staging and production. Store only
 
 Create a Git remote when its destination is supplied; push the reviewed repository. Configure branch protection on main with both CI jobs required. In GitHub, create `staging` and `production` Environments, restrict deployments to main, require designated reviewers (especially production), and prevent self-approval. **Workflow YAML alone cannot enforce those repository settings.**
 
+Repository setup is outstanding as of 2026-10-31: the owner confirmed no repository exists. Create an empty private `diversity-pmt` repository in the intended NGO account/organization without adding a README, license or .gitignore (these local files already exist). Supply its repository URL; authenticate Git through the provider's secure sign-in flow, never by pasting a token into chat. Before the first push, review tracked files and confirm `references/private`, `.env.local`, source exports and credentials remain excluded. Running the existing CI on GitHub provides a disposable Linux Docker environment for database/authentication checks without using the NGO's production data.
+
 Per GitHub Environment:
 
 | Type | Names |

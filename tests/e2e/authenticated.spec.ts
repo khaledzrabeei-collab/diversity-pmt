@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
+import { localAuthEnabled } from "../support/local-auth-environment";
 
 // Test-only administrative client. Never imported by src or run on hosted data.
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_TEST_SERVICE_ROLE_KEY;
-const enabled = Boolean(key && url && new URL(url).hostname === "127.0.0.1");
+const enabled = localAuthEnabled(process.env);
 test.describe("F-03/F-07 authenticated local acceptance", () => {
   test.skip(!enabled, "Requires isolated local Supabase and test service-role key");
   let admin: SupabaseClient;

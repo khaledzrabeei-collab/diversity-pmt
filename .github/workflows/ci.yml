@@ -32,6 +32,8 @@ jobs:
   database-and-auth:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      REQUIRE_AUTH_ACCEPTANCE: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
