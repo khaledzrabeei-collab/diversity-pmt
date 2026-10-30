@@ -4,6 +4,8 @@ Every release is a candidate until required automated tests pass and the named o
 
 Reference baseline E-07: six existing v20 domain/API suites passed 146 synthetic tests using SWC transpilation and Node's test runner (`node scripts/check-reference.cjs`, source checkout required). These establish existing code assertions for future differential tests. They do not count as new-module completion, workbook reconciliation, legacy typechecking or live integration. Preserve D-02/D-03 role-policy differences and D-06 procurement fallback as explicit acceptance cases.
 
+Supplied snapshot baseline E-08/E-09: duplicate hashes checked, four CSV outputs reproduced, 12,151 workbook cell values matched exactly (blank normalization only; four metadata cells excluded). No originals were modified. Keep source data and security roster in ignored private evidence; do not run this dataset in public CI. Future redacted fixtures must cover 57 missing October plans/results vs zero, absent approvals, missing measurement types, native-baseline/Jira-lock distinction, non-UUID IDs, same-name/different-hash files and preserving extra projects. Reported consistency does not approve source formulas or replace M-SOURCE/M-DIP/M-PITT/M-BVA/M-PROC sign-off.
+
 | Test ID | Acceptance criterion | Automation / verification |
 |---|---|---|
 | F-01 | Clean install, strict typecheck, tests and production build; liveness has no data | npm ci, typecheck, test, build; foundation.spec.ts |

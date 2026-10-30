@@ -17,7 +17,9 @@ Local execution on 2026-10-29 (Windows, Node 24.16.0):
 | CI and deployment workflows | Authored, not run on a Git host; no remote or environment credentials supplied |
 | Existing reference source | Saved v20 source retrieved at 7475cbb2a6f1268cbfcc42893306a7db5352f9e8; inspected; source checkout unchanged |
 | Existing domain/API regressions | 146 passed, 0 failed, 0 skipped through SWC transpilation; not a legacy typecheck/build or live D1 test |
-| Reference workbook parity / live UI | Not verified: workbooks absent; ordinary web reader cannot access custom-access site |
+| Supplied exports (2026-10-31) | Six files inventoried and hashed; all originals unchanged; four CSV outputs and 12,151 workbook values reconcile with JSON using inspected export code |
+| Original workbook parity / live UI | Not verified: static report contains no formulas; backup has partial source metadata; same-named procurement candidate differs from recorded original hash; live UI unverified |
+| Foundation typecheck after reference intake | Passed; private reference checkouts excluded from compilation scope |
 
 Sandbox blocked Vite, Next.js TypeScript and Playwright subprocesses with EPERM; the affected checks passed after approved execution outside the sandbox. Dependency download required network approval and retries. The failed optional Supabase CLI package is an additional local tooling limitation; Docker is still required before integration testing even after reinstalling that binary.
 

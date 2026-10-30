@@ -4,6 +4,8 @@ Only stage 1 is authorized for implementation in this delivery. Later stages are
 
 Discovery update: the existing site's v20 source is available and inspected, with 146 passing isolated regression checks. Workbooks remain missing. Before completing stage 1 acceptance, resolve D-01/D-02/D-03 migration and access choices; before business migration, preserve the legacy behavior catalogue and original source data. No source ZIP is currently needed for v20.
 
+Update 2026-10-31: user supplied six CSV/Excel/JSON exports. Intake inspection and export reconciliation are complete; details and remaining decisions are in reference-export-review.md. Repeating these exports is unnecessary. Exact original calculation workbooks, approved target/budget decisions and role mapping remain acceptance dependencies. Implementation remains foundation-only; no production data has been imported.
+
 | Stage | Scope | Entry / exit gate |
 |---|---|---|
 | 0 — Evidence baseline | Inventory originals and source, inspect formulas/behavior, establish discrepancies and authoritative versions | Evidence supplied; domain owners approve baseline |
