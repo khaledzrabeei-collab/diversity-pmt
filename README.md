@@ -56,4 +56,4 @@ references/private/        Ignored location for locally supplied originals
 - [Operations and deployment](docs/operations.md)
 - [Verification record](docs/verification.md)
 
-Reference files must be supplied and reconciled before module implementation. No deploy credentials, Git remote or production tenant are presumed.
+Supplied exports have been reconciled; original workbook/formula decisions remain open before module implementation. The GitHub remote is connected. Hosted deployment credentials and a production tenant are not configured.

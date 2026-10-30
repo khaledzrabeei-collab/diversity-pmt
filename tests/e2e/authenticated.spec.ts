@@ -74,5 +74,14 @@ test.describe("F-03/F-07 authenticated local acceptance", () => {
     await page.getByRole("button", { name: "Sign in to workspace" }).click();
     await expect(page.getByRole("alert").filter({ hasText: "Unable to sign in" })).toBeVisible();
   });
+  test("public self-registration remains disabled", async () => {
+    const publicClient = createClient(url!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    });
+    const result = await publicClient.auth.signUp({ email: `uninvited-${randomUUID()}@example.test`, password });
+    expect(result.error?.code).toBe("signup_disabled");
+    expect(result.data.session).toBeNull();
+    expect(result.data.user).toBeNull();
+  });
   // Fixtures remain in disposable local DB for failure inspection; db reset removes them.
 });
