@@ -8,5 +8,8 @@ export default defineConfig({
     launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
       ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } : {}
   },
-  webServer: { command: "npm run dev -- --hostname 127.0.0.1", url: "http://localhost:3000/api/health", reuseExistingServer: !process.env.CI }
+  webServer: {
+    command: process.env.CI ? "npm run start -- --hostname 127.0.0.1" : "npm run dev -- --hostname 127.0.0.1",
+    url: "http://localhost:3000/api/health", reuseExistingServer: !process.env.CI
+  }
 });

@@ -16,12 +16,14 @@ test.describe("F-03/F-07 authenticated local acceptance", () => {
   const viewerEmail = `viewer-${suffix}@example.test`;
   const organizationId = randomUUID();
   const projectId = randomUUID();
+  let viewerId: string;
 
   test.beforeAll(async () => {
     admin = createClient(url!, key!, { auth: { persistSession: false, autoRefreshToken: false } });
     const a = await admin.auth.admin.createUser({ email, password, email_confirm: true });
     const v = await admin.auth.admin.createUser({ email: viewerEmail, password, email_confirm: true });
     if (a.error || v.error) throw new Error("Test account provisioning failed");
+    viewerId = v.data.user!.id;
     const org = await admin.from("organizations").insert({ id: organizationId, name: "Isolated acceptance fixture" });
     if (org.error) throw org.error;
     const memberships = await admin.from("organization_memberships").insert([
@@ -42,7 +44,8 @@ test.describe("F-03/F-07 authenticated local acceptance", () => {
   });
 
   test("admin signs in, creates project, signs out and loses page access", async ({ page }) => {
-    await page.goto("/login");
+    const loginResponse = await page.goto("/login");
+    expect(loginResponse?.headers()["cache-control"]).toContain("no-store");
     await page.getByLabel("Email address").fill(email);
     await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Sign in to workspace" }).click();
@@ -51,10 +54,19 @@ test.describe("F-03/F-07 authenticated local acceptance", () => {
     await page.getByLabel("Project name").fill("New acceptance project");
     await page.getByRole("button", { name: "Create project", exact: true }).click();
     await expect(page.getByRole("heading", { name: "New acceptance project" })).toBeVisible();
+    const workspaceResponse = await page.reload();
+    expect(workspaceResponse?.headers()["cache-control"]).toContain("private");
+    expect(workspaceResponse?.headers()["cache-control"]).toContain("no-store");
+    const otherTab = await page.context().newPage();
+    await otherTab.goto("/workspace");
+    await expect(otherTab.getByRole("heading", { name: "New acceptance project" })).toBeVisible();
     await page.getByRole("button", { name: "Sign out" }).click();
     await expect(page).toHaveURL(/\/login$/);
     await page.goto("/workspace");
     await expect(page).toHaveURL(/\/login$/);
+    await otherTab.reload();
+    await expect(otherTab).toHaveURL(/\/login$/);
+    await otherTab.close();
   });
 
   test("viewer sees assignment and cannot access create controls", async ({ page }) => {
@@ -82,6 +94,49 @@ test.describe("F-03/F-07 authenticated local acceptance", () => {
     expect(result.error?.code).toBe("signup_disabled");
     expect(result.data.session).toBeNull();
     expect(result.data.user).toBeNull();
+  });
+  test("an open viewer session loses project access after assignment revocation", async ({ page }) => {
+    await page.goto("/login");
+    await page.getByLabel("Email address").fill(viewerEmail);
+    await page.getByLabel("Password", { exact: true }).fill(password);
+    await page.getByRole("button", { name: "Sign in to workspace" }).click();
+    await expect(page.getByRole("heading", { name: "Assigned fixture" })).toBeVisible();
+    try {
+      const revoked = await admin.from("project_memberships").delete()
+        .eq("project_id", projectId).eq("user_id", viewerId);
+      if (revoked.error) throw revoked.error;
+      await page.reload();
+      await expect(page).toHaveURL(/\/workspace$/);
+      await expect(page.getByRole("heading", { name: "Assigned fixture" })).toHaveCount(0);
+      await expect(page.getByRole("heading", { name: "Your project workspace starts here" })).toBeVisible();
+    } finally {
+      const restored = await admin.from("project_memberships").upsert({
+        organization_id: organizationId, project_id: projectId, user_id: viewerId, role: "viewer"
+      });
+      if (restored.error) throw restored.error;
+    }
+  });
+  test("login supports keyboard input and workspace fits mobile and desktop", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto("/login");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.getByLabel("Email address").focus();
+    await page.keyboard.type(email);
+    await page.keyboard.press("Tab");
+    await expect(page.getByLabel("Password", { exact: true })).toBeFocused();
+    await page.keyboard.type(password);
+    await page.keyboard.press("Tab");
+    const signIn = page.getByRole("button", { name: "Sign in to workspace" });
+    await expect(signIn).toBeFocused();
+    expect(await signIn.evaluate(element => parseFloat(getComputedStyle(element).outlineWidth))).toBeGreaterThan(0);
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/\/workspace$/);
+    for (const width of [375, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      await expect(page.getByLabel("Project code")).toBeVisible();
+      await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    }
   });
   // Fixtures remain in disposable local DB for failure inspection; db reset removes them.
 });

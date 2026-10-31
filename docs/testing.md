@@ -13,13 +13,13 @@ Supplied snapshot baseline E-08/E-09: duplicate hashes checked, four CSV outputs
 | F-01 | Clean install, strict typecheck, tests and production build; liveness has no data | npm ci, typecheck, test, build; foundation.spec.ts |
 | F-02 | Missing configuration exposes no simulated projects or bypass | unconfigured browser suite |
 | F-03 | Valid login; invalid credentials; protected routes; sign-out; no session | authenticated.spec.ts and foundation.spec.ts |
-| F-03b | Expired access token refresh, revoked/disabled account, concurrent logout, no shared response cache | Required staging manual/session tests; not yet automated |
+| F-03b | Expired access token refresh, revoked/disabled account, concurrent logout, no shared response cache | Authenticated suite covers cross-tab logout, assignment revocation on reload and private/no-store headers; actual token expiry, disabled-account behavior and hosting cache still require staging tests |
 | F-04 | Anonymous denied; tenant/project isolation; foreign org insert and project move denied; immediate assignment revocation | foundation.test.sql |
 | F-05 | Viewer/auditor cannot write; member cannot self-promote | foundation.test.sql; viewer browser controls |
 | F-06 | Project mutation creates attributed audit event; viewer cannot read audit; clients cannot forge/delete | foundation.test.sql |
 | F-07 | Admin creates valid project; duplicate/invalid codes rejected; unknown payload fields stripped | projects.test.ts, foundation.test.sql, authenticated.spec.ts |
 | F-08 | Protected staging release, migration success, real login/create/read/signout, backup restore evidence, rollback rehearsal | GitHub CI + deploy + staging checklist; credentials required |
-| F-09 | Keyboard navigation, visible focus, labels, readable errors, mobile 375px and desktop 1440px | Manual/browser review; not yet signed off |
+| F-09 | Keyboard navigation, visible focus, labels, readable errors, mobile 375px and desktop 1440px | Authenticated suite checks keyboard login, focused-button outline and viewport overflow/controls; full visual, contrast and screen-reader review still required |
 
 Unit tests validate meaningful input boundaries. SQL tests exercise actual PostgreSQL grants/RLS under anon/authenticated roles, including malicious direct API-equivalent requests. Browser integration tests provision only a disposable loopback Supabase instance using a test-only service key; they never provision hosted production accounts. Test fixtures are synthetic, identifiable and isolated. Do not publish authenticated traces/screenshots containing credentials or session data.
 
