@@ -4,6 +4,8 @@ Stage 1 status: implementation candidate; **not accepted and not deployed**.
 
 ## GitHub CI verified on 2026-10-31 (Asia/Aden)
 
+Latest production-mode run: [41236796572](https://github.com/khaledzrabeei-collab/diversity-pmt/actions/runs/41236796572), commit `4fd7ee965435fbe238de57e7d85d98f49b26c8f7`. Both jobs passed. Browser tests now run with `next start` against a production build configured for each job, not the development server. Confirmed 18 pgTAP assertions and 8 configured browser tests passed; only the unconfigured-mode case was intentionally skipped and is covered in the application job. Added evidence: cross-tab logout; assignment revocation during an open session followed by reload; private/no-store workspace response headers; no-store login response; keyboard login with visible focus; no horizontal viewport overflow and visible project controls at 375px/1440px. This is partial F-03b/F-09 coverage, not full accessibility or hosted-session acceptance.
+
 Repository: https://github.com/khaledzrabeei-collab/diversity-pmt (observed public; owner informed). Main is connected and pushed. [Passing run 41143895379](https://github.com/khaledzrabeei-collab/diversity-pmt/actions/runs/41143895379) tested commit `aa1a3c1f068a239939043d0340ce647a822c55f4`.
 
 - Application job passed: clean dependency install, strict TypeScript, 18 unit tests, production build, production dependency audit and unconfigured browser suite.
