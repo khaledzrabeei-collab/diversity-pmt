@@ -17,7 +17,7 @@ Status: protected staging candidate. Production release and business-module acce
 |---|---|
 | F-03b session behavior | Real expiry/refresh and suspended-account checks passed in disposable CI (session-acceptance.md); hosted cache isolation beyond response headers remains open |
 | F-08 operational readiness | Disposable application-data restore passed (recovery-rehearsal.md); complete hosted recovery, rollback rehearsal, approved recovery objectives, configured GitHub environment reviewers/secrets and tested automated release path remain open |
-| F-09 accessibility | Full visual/contrast and screen-reader review; existing keyboard/viewport tests are partial evidence |
+| F-09 accessibility | Selected axe WCAG A/AA scans and keyboard skip-link tests passed (accessibility-acceptance.md); full visual, remaining page/state and screen-reader review still required |
 | Hosted password security | Leaked-password protection is disabled and needs a plan/security decision; no paid upgrade authorized |
 | Email delivery | Custom SMTP or approved manual invitation delivery; default free email provider rejected custom templates |
 | Access model | Owner approval of organization/project role mapping and migration differences D-02/D-03 |
