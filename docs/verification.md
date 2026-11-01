@@ -1,6 +1,8 @@
 # Verification record
 
-Stage 1 status: implementation candidate; **not accepted and not deployed**.
+Stage 1 status: **deployed to protected staging; not accepted for production**. See [staging rollout](staging-rollout.md) for deployment, live smoke checks and administrator setup status. Historical records below describe earlier states.
+
+2026-11-01: invitation onboarding added and tested. 25 unit tests pass; full CI passed at commit `aa304f9` in run [41331158339](https://github.com/khaledzrabeei-collab/diversity-pmt/actions/runs/41331158339). Foundation migration applied to the verified empty staging project; all five tables have RLS. Protected deployment is live. First owner password setup/login and remaining acceptance gates are still open; no business module or imported source data is deployed.
 
 ## GitHub CI verified on 2026-10-31 (Asia/Aden)
 
