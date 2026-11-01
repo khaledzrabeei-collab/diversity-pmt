@@ -23,13 +23,18 @@ snapshot() {
 count=$(docker exec "$container" psql -X -U postgres -d postgres -Atc 'select count(*) from public.projects;')
 [[ "$count" =~ ^[1-9][0-9]*$ ]] || { echo 'Expected nonempty synthetic fixtures.' >&2; exit 1; }
 snapshot > "$scratch/before"
-docker exec "$container" pg_dump -U postgres -d postgres --data-only --disable-triggers "${args[@]}" > "$scratch/application.sql"
+docker exec "$container" pg_dump -U postgres -d postgres --data-only "${args[@]}" > "$scratch/application.sql"
 test -s "$scratch/application.sql"
 docker exec "$container" psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 -c \
   'truncate public.audit_events, public.project_memberships, public.projects, public.organization_memberships, public.organizations restart identity;'
 empty=$(docker exec "$container" psql -X -U postgres -d postgres -Atc 'select count(*) from public.projects;')
 [[ "$empty" == '0' ]]
-docker exec -i "$container" psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 --single-transaction < "$scratch/application.sql" > "$scratch/restore.log"
+{
+  # Preserve FK checks; disable only application audit/update triggers during recovery.
+  for table in "${tables[@]}"; do echo "alter table public.$table disable trigger user;"; done
+  cat "$scratch/application.sql"
+  for table in "${tables[@]}"; do echo "alter table public.$table enable trigger user;"; done
+} | docker exec -i "$container" psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 --single-transaction > "$scratch/restore.log"
 snapshot > "$scratch/after"
 diff -u "$scratch/before" "$scratch/after"
 echo 'Application data restore passed: five table counts/content digests and audit sequence match.'
