@@ -26,3 +26,13 @@ Status: protected staging candidate. Production release and business-module acce
 The owner's successful login review is recorded as evidence for F-03/F-07 and the staging smoke-test portion of F-08 only. It is not a blanket approval, formula approval, authorization to import original data, or production sign-off.
 
 Stage 2 source intake and subsequent modules remain deferred under the original foundation-only scope. Their acceptance gates are defined in testing.md and implementation-plan.md.
+
+## Free-plan development follow-up
+
+Development continues without paid upgrades. No business modules or hosted user changes are included in this follow-up. Vercel Hobby eligibility for organizational use remains unresolved; do not infer eligibility from nonprofit status or treat a staging deployment as approval for operational hosting.
+
+The browser suite now includes isolated browser contexts accessing the same workspace route and rejection of an existing session after its disposable account is deleted. This is local production-build coverage, not proof of hosted cache behavior, suspended-account handling or real token expiry.
+
+Both CI jobs passed for final commit `fac11c8` in [run 41336200229](https://github.com/khaledzrabeei-collab/diversity-pmt/actions/runs/41336200229), including the added session test and contrast changes. Local typecheck also passed. The contrast changes are committed but not redeployed to hosted staging while hosting eligibility remains unresolved. No paid services were enabled.
+
+Static sRGB contrast review found muted text on paper at 4.41:1, planned labels at 3.69:1, module numbers at 3.81:1 and focus outlines on white at 2.53:1. Corrected text uses #526762: paper 5.60:1, white 6.04:1, module background 5.86:1. Focus uses #9a6215: white 5.08:1 and paper 4.71:1. These measurements cover the identified solid-color pairs only; full visual and screen-reader review remains open.
