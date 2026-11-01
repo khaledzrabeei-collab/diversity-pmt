@@ -138,6 +138,40 @@ test.describe("F-03/F-07 authenticated local acceptance", () => {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     }
   });
+  test("separate browser sessions do not share project responses", async ({ page, browser }) => {
+    await page.goto("/login");
+    await page.getByLabel("Email address").fill(email);
+    await page.getByLabel("Password", { exact: true }).fill(password);
+    await page.getByRole("button", { name: "Sign in to workspace" }).click();
+    await expect(page.getByRole("heading", { name: "Assigned fixture" })).toBeVisible();
+    const isolated = await browser.newContext({ baseURL: "http://localhost:3000" });
+    const outsiderEmail = `outsider-${randomUUID()}@example.test`;
+    const outsider = await admin.auth.admin.createUser({ email: outsiderEmail, password, email_confirm: true });
+    if (outsider.error) throw outsider.error;
+    try {
+      const other = await isolated.newPage();
+      await other.goto("/workspace");
+      await expect(other).toHaveURL(/\/login$/);
+      await other.getByLabel("Email address").fill(outsiderEmail);
+      await other.getByLabel("Password", { exact: true }).fill(password);
+      await other.getByRole("button", { name: "Sign in to workspace" }).click();
+      await expect(other).toHaveURL(/\/workspace$/);
+      for (let attempt = 0; attempt < 2; attempt++) {
+        await page.reload();
+        await expect(page.getByRole("heading", { name: "Assigned fixture" })).toBeVisible();
+        await other.reload();
+        await expect(other.getByRole("heading", { name: "Assigned fixture" })).toHaveCount(0);
+        await expect(other.getByRole("button", { name: "Create project", exact: true })).toHaveCount(0);
+      }
+      // A real server-side account removal must invalidate the existing browser session.
+      const removed = await admin.auth.admin.deleteUser(outsider.data.user.id);
+      if (removed.error) throw removed.error;
+      await other.reload();
+      await expect(other).toHaveURL(/\/login$/);
+    } finally {
+      await isolated.close();
+    }
+  });
   // Fixtures remain in disposable local DB for failure inspection; db reset removes them.
   test("invitation needs explicit acceptance, permits password setup, and cannot be replayed", async ({ page, browser }) => {
     const invitedEmail = `invited-${randomUUID()}@example.test`;
