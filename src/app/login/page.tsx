@@ -2,6 +2,7 @@ import { signIn } from "@/modules/auth/actions";
 import { getPublicEnv } from "@/lib/env";
 import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Sign in | Diversity PMT" };
 export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   if (!getPublicEnv().success) redirect("/setup");
   const params = await searchParams;

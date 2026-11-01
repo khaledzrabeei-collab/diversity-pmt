@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
+import AxeBuilder from "@axe-core/playwright";
 import { localAuthEnabled } from "../support/local-auth-environment";
 
 // Test-only administrative client. Never imported by src or run on hosted data.
@@ -119,6 +120,8 @@ test.describe("F-03/F-07 authenticated local acceptance", () => {
   test("login supports keyboard input and workspace fits mobile and desktop", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/login");
+    await expect(page).toHaveTitle("Sign in | Diversity PMT");
+    expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.getByLabel("Email address").focus();
     await page.keyboard.type(email);
@@ -133,10 +136,19 @@ test.describe("F-03/F-07 authenticated local acceptance", () => {
     await expect(page).toHaveURL(/\/workspace$/);
     for (const width of [375, 1440]) {
       await page.setViewportSize({ width, height: 900 });
+      await expect(page).toHaveTitle("Projects | Diversity PMT");
+      expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
       await expect(page.getByLabel("Project code")).toBeVisible();
       await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     }
+    await page.reload();
+    await page.keyboard.press("Tab");
+    const skip = page.getByRole("link", { name: "Skip to main content" });
+    await expect(skip).toBeFocused();
+    await expect(skip).toBeInViewport();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("main")).toBeFocused();
   });
   test("separate browser sessions do not share project responses", async ({ page, browser }) => {
     await page.goto("/login");
