@@ -41,6 +41,10 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
+      - name: Shorten token lifetime only in disposable CI configuration
+        run: |
+          grep -q '^jwt_expiry = 3600$' supabase/config.toml
+          sed -i 's/^jwt_expiry = 3600$/jwt_expiry = 60/' supabase/config.toml
       - run: npm run db:start
       - run: npm run db:reset
       - run: npm run db:test

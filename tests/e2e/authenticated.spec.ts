@@ -172,6 +172,52 @@ test.describe("F-03/F-07 authenticated local acceptance", () => {
       await isolated.close();
     }
   });
+  test("expired access token refreshes through the server cookie flow", async ({ page }) => {
+    test.skip(!process.env.CI, "Requires the disposable CI 60-second token configuration");
+    test.setTimeout(150_000);
+    await page.goto("/login");
+    await page.getByLabel("Email address").fill(email);
+    await page.getByLabel("Password", { exact: true }).fill(password);
+    await page.getByRole("button", { name: "Sign in to workspace" }).click();
+    await expect(page.getByRole("heading", { name: "Assigned fixture" })).toBeVisible();
+    const expiry = async () => {
+      const cookies = (await page.context().cookies()).filter(c => /^sb-.+-auth-token(?:\.\d+)?$/.test(c.name));
+      const value = cookies.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })).map(c => c.value).join("");
+      const session = JSON.parse(value.startsWith("base64-") ? Buffer.from(value.slice(7), "base64url").toString("utf8") : value);
+      const claims = JSON.parse(Buffer.from(session.access_token.split(".")[1], "base64url").toString("utf8"));
+      if (typeof claims.exp !== "number") throw new Error("Expected access-token expiry");
+      return claims.exp as number;
+    };
+    const before = await expiry();
+    const remaining = before * 1000 - Date.now();
+    expect(remaining).toBeGreaterThan(0);
+    expect(remaining).toBeLessThanOrEqual(65_000);
+    // No clock mocking: the real signed token expires while the browser is idle.
+    await new Promise(resolve => setTimeout(resolve, remaining + 2000));
+    expect(Date.now()).toBeGreaterThan(before * 1000);
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Assigned fixture" })).toBeVisible();
+    expect(await expiry()).toBeGreaterThan(before);
+  });
+
+  test("suspended account loses an existing session and cannot sign in", async ({ page }) => {
+    const suspendedEmail = `suspended-${randomUUID()}@example.test`;
+    const account = await admin.auth.admin.createUser({ email: suspendedEmail, password, email_confirm: true });
+    if (account.error) throw account.error;
+    await page.goto("/login");
+    await page.getByLabel("Email address").fill(suspendedEmail);
+    await page.getByLabel("Password", { exact: true }).fill(password);
+    await page.getByRole("button", { name: "Sign in to workspace" }).click();
+    await expect(page).toHaveURL(/\/workspace$/);
+    const banned = await admin.auth.admin.updateUserById(account.data.user.id, { ban_duration: "24h" });
+    if (banned.error) throw banned.error;
+    await page.reload();
+    await expect(page).toHaveURL(/\/login$/);
+    await page.getByLabel("Email address").fill(suspendedEmail);
+    await page.getByLabel("Password", { exact: true }).fill(password);
+    await page.getByRole("button", { name: "Sign in to workspace" }).click();
+    await expect(page.getByRole("alert").filter({ hasText: "Unable to sign in" })).toBeVisible();
+  });
   // Fixtures remain in disposable local DB for failure inspection; db reset removes them.
   test("invitation needs explicit acceptance, permits password setup, and cannot be replayed", async ({ page, browser }) => {
     const invitedEmail = `invited-${randomUUID()}@example.test`;
