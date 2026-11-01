@@ -26,8 +26,10 @@ jobs:
     timeout-minutes: 30
     environment: ${{ inputs.environment }}
     env:
+      DEPLOYMENT_ENVIRONMENT: ${{ inputs.environment }}
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
@@ -45,8 +47,15 @@ jobs:
         shell: bash
         run: |
           test -n "$SUPABASE_ACCESS_TOKEN"
-          test -n "$SUPABASE_DB_PASSWORD"
           test -n "$SUPABASE_PROJECT_REF"
+          if [[ "$DEPLOYMENT_ENVIRONMENT" == "staging" ]]; then
+            [[ "$SUPABASE_DB_URL" =~ ^postgres(ql)?://postgres\.${SUPABASE_PROJECT_REF}:[^@]+@[^/]+\.pooler\.supabase\.com:5432/postgres(\?.*)?$ ]] || {
+              echo "::error::Staging requires SUPABASE_DB_URL to be the IPv4-compatible Supavisor session-pooler URL for the configured project (port 5432)."
+              exit 1
+            }
+          else
+            test -n "$SUPABASE_DB_PASSWORD"
+          fi
           test -n "$VERCEL_TOKEN"
           test -n "$VERCEL_AUTOMATION_BYPASS_SECRET"
           test -n "$VERCEL_ORG_ID"
@@ -56,9 +65,19 @@ jobs:
       - run: npm ci
       - run: npx supabase link --project-ref "$SUPABASE_PROJECT_REF"
       - name: Review migration plan in log
-        run: npx supabase db push --dry-run
+        run: |
+          if [[ "$DEPLOYMENT_ENVIRONMENT" == "staging" ]]; then
+            npx supabase db push --db-url "$SUPABASE_DB_URL" --dry-run
+          else
+            npx supabase db push --dry-run
+          fi
       - name: Apply reviewed additive migrations
-        run: npx supabase db push --yes
+        run: |
+          if [[ "$DEPLOYMENT_ENVIRONMENT" == "staging" ]]; then
+            npx supabase db push --db-url "$SUPABASE_DB_URL" --yes
+          else
+            npx supabase db push --yes
+          fi
       - run: npx --yes "vercel@$VERCEL_CLI_VERSION" pull --yes --environment=production --token="$VERCEL_TOKEN"
       - run: npx --yes "vercel@$VERCEL_CLI_VERSION" build --prod --token="$VERCEL_TOKEN"
       - name: Deploy to selected environment's isolated Vercel project

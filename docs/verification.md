@@ -46,3 +46,8 @@ Sandbox blocked Vite, Next.js TypeScript and Playwright subprocesses with EPERM;
 Dependency versions: Next.js 16.4.3, React 19.3.1, Supabase SSR 0.12.7, Supabase JS 2.118.0. Exact remaining versions and integrity hashes are in package-lock.json. No hosted infrastructure has been supplied. Git remote/CI are now connected as recorded above. No business module is implemented or accepted.
 
 Release gate remains closed until required tests, environment setup and owner acceptance are complete. Do not treat tests authored, YAML written or a successful static build as proof of integration or production readiness.
+
+
+## Latest staging deployment check — 2026-11-02
+
+Gated workflow run [41357321214](https://github.com/khaledzrabeei-collab/diversity-pmt/actions/runs/41357321214) passed application and database/auth CI and successfully linked the staging Supabase project with the corrected scoped PAT. It failed before migration review because the GitHub Actions runner could not use IPv6 to reach Supabase's direct database endpoint. The migration apply and Vercel steps were skipped; no database migration or deployment occurred, and production was not targeted. A local, unpushed branch `fix/staging-ipv4-session-pooler` prepares a staging-only Supavisor session-pooler connection path. A staging-only `SUPABASE_DB_URL` secret and fresh approval for any further staging run remain outstanding.
