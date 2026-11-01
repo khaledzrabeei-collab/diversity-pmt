@@ -39,12 +39,12 @@ Per GitHub Environment:
 
 | Type | Names |
 |---|---|
-| Secrets | SUPABASE_ACCESS_TOKEN, SUPABASE_DB_PASSWORD, VERCEL_TOKEN |
+| Secrets | SUPABASE_ACCESS_TOKEN, SUPABASE_DB_PASSWORD, VERCEL_TOKEN, VERCEL_AUTOMATION_BYPASS_SECRET |
 | Variables | SUPABASE_PROJECT_REF, VERCEL_ORG_ID, VERCEL_PROJECT_ID, VERCEL_CLI_VERSION |
 
 Set VERCEL_CLI_VERSION to a reviewed exact semver. The workflow refuses an unset/floating version. Both staging and production deploy to their own Vercel project's production target, preventing production data from leaking into staging. Disable any independent automatic Vercel production deployment path that could bypass GitHub gates.
 
-Run CI, then the manual Gated deployment workflow on main with a signed acceptance/validation ticket URL. CI reruns for that commit. The environment reviewer checks the migration and acceptance evidence before approving. The workflow dry-runs and applies additive migrations, builds, deploys, and probes liveness. A successful liveness probe does not complete acceptance: run login/project access/create/logout smoke tests and verify Auth settings. If Vercel deployment protection is enabled, configure an approved protected smoke-test mechanism; the unauthenticated curl may fail and must not be silently ignored.
+Run CI, then the manual Gated deployment workflow on main with a signed acceptance/validation ticket URL. CI reruns for that commit. The environment reviewer checks the migration and acceptance evidence before approving. The workflow dry-runs and applies additive migrations, builds, deploys, and probes liveness. A successful liveness probe does not complete acceptance: run login/project access/create/logout smoke tests and verify Auth settings. The workflow requires an environment-scoped automation bypass secret and validates the exact health payload without following redirects. See rollback-procedure.md. Configure and verify that secret before running the gated release.
 
 ## Release and rollback
 
