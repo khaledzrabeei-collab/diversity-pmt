@@ -139,4 +139,36 @@ test.describe("F-03/F-07 authenticated local acceptance", () => {
     }
   });
   // Fixtures remain in disposable local DB for failure inspection; db reset removes them.
+  test("invitation needs explicit acceptance, permits password setup, and cannot be replayed", async ({ page, browser }) => {
+    const invitedEmail = `invited-${randomUUID()}@example.test`;
+    const invite = await admin.auth.admin.generateLink({ type: "invite", email: invitedEmail });
+    if (invite.error) throw new Error(`Invitation provisioning failed: ${invite.error.code}`);
+    const token = invite.data.properties.hashed_token;
+    const invitationUrl = `/auth/confirm?token_hash=${encodeURIComponent(token)}`;
+    await page.goto("/account/password");
+    await expect(page).toHaveURL(/\/login$/);
+    const response = await page.goto(invitationUrl);
+    expect(response?.headers()["referrer-policy"]).toBe("no-referrer");
+    await page.reload(); // Email scanners can GET the link without consuming it.
+    await page.getByRole("button", { name: "Accept invitation" }).click();
+    await expect(page).toHaveURL(/\/account\/password$/);
+    await page.getByLabel("New password", { exact: true }).fill(password);
+    await page.getByLabel("Confirm password").fill(password);
+    await page.getByRole("button", { name: "Save password" }).click();
+    await expect(page).toHaveURL(/\/workspace$/);
+    await page.getByRole("button", { name: "Sign out" }).click();
+    await page.getByLabel("Email address").fill(invitedEmail);
+    await page.getByLabel("Password", { exact: true }).fill(password);
+    await page.getByRole("button", { name: "Sign in to workspace" }).click();
+    await expect(page).toHaveURL(/\/workspace$/);
+    const replayContext = await browser.newContext();
+    try {
+      const replay = await replayContext.newPage();
+      await replay.goto(`http://localhost:3000${invitationUrl}`);
+      await replay.getByRole("button", { name: "Accept invitation" }).click();
+      await expect(replay.getByRole("alert").filter({ hasText: "invitation is invalid" })).toBeVisible();
+      await replay.goto("http://localhost:3000/account/password");
+      await expect(replay).toHaveURL(/\/login$/);
+    } finally { await replayContext.close(); }
+  });
 });

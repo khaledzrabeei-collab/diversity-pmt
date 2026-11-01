@@ -23,7 +23,7 @@ commit;
 ```
 
 4. Sign in through the app and create a project. For each additional user, create their Auth account, add an organization_memberships row and a project_memberships row using matching organization_id/project_id. Use the documented role matrix. All membership changes trigger audit records; operator SQL actions have null actor_id unless an authenticated user context is supplied. Record operator identity separately in the change ticket.
-5. Recovery currently uses the trusted administrator's Supabase Auth tooling and approved identity-verification process. Self-service recovery and membership UI are deferred; do not interpret them as delivered.
+5. Provisioned invitations use the versioned invite email template, `/auth/confirm` and `/account/password`. Opening the link does not consume it: an explicit form submission verifies the invite and establishes the server session. The authenticated user chooses a matching 12–128-character password. Tokens are single-use, errors are generic, and auth/account responses use no-store/no-referrer. Set the hosted Auth site URL to the deployed staging URL before sending an invitation. Recovery still uses trusted administrator tooling; self-service recovery and membership UI remain deferred.
 
 ## Hosted configuration
 

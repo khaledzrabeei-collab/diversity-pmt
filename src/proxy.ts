@@ -17,6 +17,7 @@ export async function proxy(request: NextRequest) {
   });
   await supabase.auth.getUser();
   response.headers.set("Cache-Control", "private, no-store");
+  response.headers.set("Referrer-Policy", "no-referrer");
   return response;
 }
-export const config = { matcher: ["/workspace/:path*", "/login"] };
+export const config = { matcher: ["/workspace/:path*", "/login", "/auth/:path*", "/account/:path*"] };

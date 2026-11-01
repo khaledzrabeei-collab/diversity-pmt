@@ -29,6 +29,9 @@ enable_signup = false
 enable_signup = true
 enable_confirmations = true
 double_confirm_changes = true
+[auth.email.template.invite]
+subject = "Your Diversity PMT invitation"
+content_path = "./supabase/templates/invite.html"
 [auth.rate_limit]
 sign_in_sign_ups = 10
 token_refresh = 150

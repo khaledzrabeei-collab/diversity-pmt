@@ -1,0 +1,14 @@
+.git
+.env*
+references/
+node_modules/
+.next/
+test-results/
+playwright-report/
+coverage/
+docs/
+scripts/
+supabase/
+tests/
+__pycache__/
+*.tsbuildinfo
