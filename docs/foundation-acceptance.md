@@ -15,7 +15,7 @@ Status: protected staging candidate. Production release and business-module acce
 
 | Item | Required evidence/decision |
 |---|---|
-| F-03b session behavior | Real token expiry/refresh, suspended-account behavior and hosted cache isolation beyond response headers |
+| F-03b session behavior | Real expiry/refresh and suspended-account checks passed in disposable CI (session-acceptance.md); hosted cache isolation beyond response headers remains open |
 | F-08 operational readiness | Disposable application-data restore passed (recovery-rehearsal.md); complete hosted recovery, rollback rehearsal, approved recovery objectives, configured GitHub environment reviewers/secrets and tested automated release path remain open |
 | F-09 accessibility | Full visual/contrast and screen-reader review; existing keyboard/viewport tests are partial evidence |
 | Hosted password security | Leaked-password protection is disabled and needs a plan/security decision; no paid upgrade authorized |

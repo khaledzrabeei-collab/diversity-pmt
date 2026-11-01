@@ -14,7 +14,7 @@ Supplied snapshot baseline E-08/E-09: duplicate hashes checked, four CSV outputs
 | F-02 | Missing configuration exposes no simulated projects or bypass | unconfigured browser suite |
 | F-03 | Valid login; invalid credentials; protected routes; sign-out; no session | authenticated.spec.ts and foundation.spec.ts |
 | F-03c | Invited user explicitly accepts, sets password, can sign in, and cannot replay invite; anonymous password setup denied | invitation unit tests and authenticated browser test; requires a passing CI run before hosted invitation |
-| F-03b | Expired access token refresh, revoked/disabled account, concurrent logout, no shared response cache | Authenticated suite covers cross-tab logout, assignment revocation on reload and private/no-store headers; actual token expiry, disabled-account behavior and hosting cache still require staging tests |
+| F-03b | Expired access token refresh, revoked/disabled account, concurrent logout, no shared response cache | Authenticated suite passed real expiry/refresh, suspended and deleted accounts, separate browser contexts, cross-tab logout, assignment revocation and private/no-store headers. See session-acceptance.md; hosted cache isolation remains open |
 | F-04 | Anonymous denied; tenant/project isolation; foreign org insert and project move denied; immediate assignment revocation | foundation.test.sql |
 | F-05 | Viewer/auditor cannot write; member cannot self-promote | foundation.test.sql; viewer browser controls |
 | F-06 | Project mutation creates attributed audit event; viewer cannot read audit; clients cannot forge/delete | foundation.test.sql |
