@@ -8,7 +8,9 @@ playwright-report/
 coverage/
 docs/
 scripts/
-supabase/
+/supabase/
 tests/
+/playwright.config.ts
+/vitest.config.ts
 __pycache__/
 *.tsbuildinfo
