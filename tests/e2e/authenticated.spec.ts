@@ -173,8 +173,8 @@ test.describe("F-03/F-07 authenticated local acceptance", () => {
     }
   });
   test("expired access token refreshes through the server cookie flow", async ({ page }) => {
-    test.skip(!process.env.CI, "Requires the disposable CI 60-second token configuration");
-    test.setTimeout(150_000);
+    test.skip(!process.env.CI, "Requires the disposable CI 120-second token configuration");
+    test.setTimeout(210_000);
     await page.goto("/login");
     await page.getByLabel("Email address").fill(email);
     await page.getByLabel("Password", { exact: true }).fill(password);
@@ -191,7 +191,7 @@ test.describe("F-03/F-07 authenticated local acceptance", () => {
     const before = await expiry();
     const remaining = before * 1000 - Date.now();
     expect(remaining).toBeGreaterThan(0);
-    expect(remaining).toBeLessThanOrEqual(65_000);
+    expect(remaining).toBeLessThanOrEqual(125_000);
     // No clock mocking: the real signed token expires while the browser is idle.
     await new Promise(resolve => setTimeout(resolve, remaining + 2000));
     expect(Date.now()).toBeGreaterThan(before * 1000);
