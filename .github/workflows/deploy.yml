@@ -11,6 +11,11 @@ on:
         description: Link to signed acceptance or staging validation ticket
         type: string
         required: true
+      allow_unhealthy_staging:
+        description: Temporarily tolerate health-check failure for staging diagnostics only
+        type: boolean
+        required: false
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -27,6 +32,7 @@ jobs:
     environment: ${{ inputs.environment }}
     env:
       DEPLOYMENT_ENVIRONMENT: ${{ inputs.environment }}
+      ALLOW_UNHEALTHY_STAGING: ${{ inputs.allow_unhealthy_staging }}
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
@@ -56,6 +62,10 @@ jobs:
           else
             test -n "$SUPABASE_DB_PASSWORD"
           fi
+          if [[ "$ALLOW_UNHEALTHY_STAGING" == "true" && "$DEPLOYMENT_ENVIRONMENT" != "staging" ]]; then
+            echo "::error::The temporary health-check tolerance is permitted only for staging; production verification remains strict."
+            exit 1
+          fi
           test -n "$VERCEL_TOKEN"
           test -n "$VERCEL_AUTOMATION_BYPASS_SECRET"
           test -n "$VERCEL_ORG_ID"
@@ -81,10 +91,157 @@ jobs:
       - run: npx --yes "vercel@$VERCEL_CLI_VERSION" pull --yes --environment=production --token="$VERCEL_TOKEN"
       - run: npx --yes "vercel@$VERCEL_CLI_VERSION" build --prod --token="$VERCEL_TOKEN"
       - name: Deploy to selected environment's isolated Vercel project
+        id: deploy
         shell: bash
         run: |
+          set -euo pipefail
           npx --yes "vercel@$VERCEL_CLI_VERSION" deploy --prebuilt --prod --token="$VERCEL_TOKEN" > "$RUNNER_TEMP/deploy-url.txt"
-          export DEPLOY_URL=$(tail -n 1 "$RUNNER_TEMP/deploy-url.txt")
-          node scripts/verify-deployment-health.ts
-          printf '\nDeployment: %s\n' "$DEPLOY_URL" >> "$GITHUB_STEP_SUMMARY"
+          DEPLOYMENT_URL="$(tail -n 1 "$RUNNER_TEMP/deploy-url.txt")"
+          if [[ ! "$DEPLOYMENT_URL" =~ ^https://[^/?#]+\.vercel\.app$ ]]; then
+            echo "::error::Vercel CLI did not return a direct HTTPS deployment URL."
+            exit 1
+          fi
+          printf 'url=%s\n' "$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
+          printf 'Deployment: %s\n' "$DEPLOYMENT_URL" >> "$GITHUB_STEP_SUMMARY"
           printf 'Acceptance: %s\n' "$ACCEPTANCE_RECORD" >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify deployment health
+        id: health
+        continue-on-error: ${{ inputs.allow_unhealthy_staging && inputs.environment == 'staging' }}
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
+          SUPABASE_ACCESS_TOKEN: ''
+          SUPABASE_DB_PASSWORD: ''
+          SUPABASE_DB_URL: ''
+          VERCEL_TOKEN: ''
+        run: node scripts/verify-deployment-health.ts
+      - name: Inspect failed staging deployment with Vercel CLI
+        if: ${{ always() && inputs.environment == 'staging' && steps.health.outcome == 'failure' }}
+        continue-on-error: true
+        shell: bash
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+          VERCEL_CLI_VERSION: ${{ vars.VERCEL_CLI_VERSION }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ''
+          SUPABASE_ACCESS_TOKEN: ''
+          SUPABASE_DB_PASSWORD: ''
+          SUPABASE_DB_URL: ''
+        run: |
+          set +e
+          if [[ -z "$DEPLOYMENT_URL" ]]; then
+            echo "::warning::No deployment URL was available for Vercel CLI diagnostics."
+            exit 0
+          fi
+
+          npx --yes "vercel@$VERCEL_CLI_VERSION" inspect "$DEPLOYMENT_URL" --json --token="$VERCEL_TOKEN" > "$RUNNER_TEMP/vercel-inspect.json" 2> "$RUNNER_TEMP/vercel-inspect.stderr"
+          inspect_status=$?
+          if [[ "$inspect_status" -eq 0 ]]; then
+            node - "$RUNNER_TEMP/vercel-inspect.json" <<'NODE'
+          const fs = require("node:fs");
+          const states = new Set(["BUILDING", "ERROR", "INITIALIZING", "QUEUED", "READY", "CANCELED", "CANCELLED"]);
+          const targets = new Set(["development", "preview", "production"]);
+          try {
+            const root = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
+            const deployment = root?.deployment ?? root?.data ?? root;
+            const summary = {};
+            const state = String(deployment?.readyState ?? "").toUpperCase();
+            const target = String(deployment?.target ?? "").toLowerCase();
+            if (states.has(state)) summary.readyState = state;
+            if (targets.has(target)) summary.target = target;
+            const createdAt = deployment?.createdAt;
+            if (typeof createdAt === "number" && Number.isFinite(createdAt)) summary.createdAt = new Date(createdAt).toISOString();
+            console.log("Vercel inspect summary:", JSON.stringify(summary));
+          } catch {
+            console.log("Vercel inspect completed, but its JSON summary could not be parsed.");
+          }
+          NODE
+          else
+            echo "::warning::Vercel CLI inspect failed (exit $inspect_status); raw output was suppressed."
+          fi
+
+          npx --yes "vercel@$VERCEL_CLI_VERSION" logs requests --project "$VERCEL_PROJECT_ID" --deployment "$DEPLOYMENT_URL" --query 'requestPath:*api/health*' --since 1h --limit 100 --json --token="$VERCEL_TOKEN" > "$RUNNER_TEMP/vercel-health-requests.jsonl" 2> "$RUNNER_TEMP/vercel-requests.stderr"
+          request_status=$?
+          if [[ "$request_status" -eq 0 ]]; then
+            node - "$RUNNER_TEMP/vercel-health-requests.jsonl" <<'NODE'
+          const fs = require("node:fs");
+          const safeTimestamp = value => {
+            if (typeof value === "number" && Number.isFinite(value) && value > 0) return new Date(value).toISOString();
+            if (typeof value === "string" && value.length <= 40 && Number.isFinite(Date.parse(value))) return new Date(value).toISOString();
+            return null;
+          };
+          const methods = new Set(["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]);
+          const safeMethod = value => {
+            const method = String(value ?? "").toUpperCase();
+            return methods.has(method) ? method : null;
+          };
+          const safeStatus = value => {
+            const status = Number(value);
+            return Number.isInteger(status) && status >= 100 && status <= 599 ? status : null;
+          };
+          let found = 0;
+          for (const line of fs.readFileSync(process.argv[2], "utf8").split(/\r?\n/).filter(Boolean)) {
+            let row;
+            try { row = JSON.parse(line); } catch { continue; }
+            if (row.type === "summary") continue;
+            const record = row.data ?? row.request ?? row;
+            const rawPath = record.requestPath ?? record.path ?? record.request?.path ?? "";
+            let pathname;
+            try { pathname = new URL(String(rawPath), "https://diagnostic.invalid").pathname; }
+            catch { pathname = String(rawPath).split("?")[0]; }
+            if (pathname !== "/api/health") continue;
+            found++;
+            console.log(JSON.stringify({
+              timestamp: safeTimestamp(record.timestamp ?? record.time ?? record.createdAt),
+              method: safeMethod(record.requestMethod ?? record.method),
+              path: "/api/health",
+              httpStatus: safeStatus(record.httpStatus ?? record.statusCode ?? record.status)
+            }));
+          }
+          if (found === 0) console.log("Vercel request logs returned no /api/health records for this deployment and time window.");
+          NODE
+          else
+            echo "::warning::Vercel CLI request-log query failed (exit $request_status); raw output was suppressed."
+          fi
+
+          npx --yes "vercel@$VERCEL_CLI_VERSION" logs runtime --project "$VERCEL_PROJECT_ID" --deployment "$DEPLOYMENT_URL" --query 'level:(error OR fatal)' --since 1h --limit 100 --json --token="$VERCEL_TOKEN" > "$RUNNER_TEMP/vercel-runtime-errors.jsonl" 2> "$RUNNER_TEMP/vercel-runtime.stderr"
+          runtime_status=$?
+          if [[ "$runtime_status" -eq 0 ]]; then
+            node - "$RUNNER_TEMP/vercel-runtime-errors.jsonl" <<'NODE'
+          const fs = require("node:fs");
+          const levels = new Set(["error", "fatal"]);
+          const safeTimestamp = value => {
+            if (typeof value === "number" && Number.isFinite(value) && value > 0) return new Date(value).toISOString();
+            if (typeof value === "string" && value.length <= 40 && Number.isFinite(Date.parse(value))) return new Date(value).toISOString();
+            return null;
+          };
+          let found = 0;
+          for (const line of fs.readFileSync(process.argv[2], "utf8").split(/\r?\n/).filter(Boolean)) {
+            let row;
+            try { row = JSON.parse(line); } catch { continue; }
+            if (row.type === "summary") continue;
+            const record = row.data ?? row;
+            const route = String(record.route ?? record.path ?? record.function ?? "");
+            const message = String(record.message ?? record.text ?? "");
+            if (!/health|api\/health/i.test(`${route} ${message}`)) continue;
+            found++;
+            const level = String(record.level ?? "").toLowerCase();
+            console.log(JSON.stringify({
+              timestamp: safeTimestamp(record.timestamp ?? record.time ?? record.createdAt),
+              level: levels.has(level) ? level : "error",
+              path: "/api/health",
+              errorPresent: message.length > 0
+            }));
+          }
+          if (found === 0) console.log("Vercel runtime logs returned no health-related error records for this deployment and time window.");
+          NODE
+          else
+            echo "::warning::Vercel CLI runtime-log query failed (exit $runtime_status); raw output was suppressed."
+          fi
+      - name: Report tolerated staging health failure
+        if: ${{ inputs.allow_unhealthy_staging && inputs.environment == 'staging' && steps.health.outcome == 'failure' }}
+        shell: bash
+        run: |
+          echo "::warning::Staging health verification failed but was temporarily tolerated for diagnostics; the deployment remains unverified."
+          printf 'Health verification: FAILED (temporarily tolerated for staging diagnostics); deployment remains unverified.\n' >> "$GITHUB_STEP_SUMMARY"
